@@ -2,14 +2,13 @@ from rest_framework import serializers
 from board_app.models import Board, Member, Task
 
 
-class BoardSerializer(serializers.ModelSerializer):
+class BoardListSerializer(serializers.ModelSerializer):
     member_count = serializers.SerializerMethodField()
     ticket_count = serializers.SerializerMethodField()
-    owner_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Board
-        fields = ["id", "title", "member_count", "ticket_count", "owner_id"]
+        fields = ["id", "title", "member_count", "ticket_count"]
 
     def get_member_count(self, obj):
         return obj.members.count()
@@ -17,14 +16,18 @@ class BoardSerializer(serializers.ModelSerializer):
     def get_ticket_count(self, obj):
         return obj.tasks.count()
 
-    def get_owner_id(self, obj):
-        return obj.owner.id
-
 
 class MemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Member
         fields = "__all__"
+
+
+class BoardDetailSerializer(BoardListSerializer):
+    members = MemberSerializer(many=True)
+
+    class Meta(BoardListSerializer.Meta):
+        fields = BoardListSerializer.Meta.fields + ["members"]
 
 
 class TaskSerializer(serializers.ModelSerializer):

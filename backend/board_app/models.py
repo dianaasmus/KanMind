@@ -21,9 +21,9 @@ class Board(models.Model):
     title = models.CharField(max_length=50)
     members = models.ManyToManyField(Member, related_name="boards", blank=True)
     tasks = models.ManyToManyField(Task, related_name="boards", blank=True)
-    owner = models.ForeignKey(
-        Member, on_delete=models.CASCADE, related_name="owned_boards"
-    )
+    # owner = models.ForeignKey(
+    #     Member, on_delete=models.CASCADE, related_name="owned_boards"
+    # )
 
     def __str__(self):
         return self.title

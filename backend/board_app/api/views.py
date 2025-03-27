@@ -1,11 +1,21 @@
-from rest_framework import generics
+from rest_framework import generics, status, viewsets
+from rest_framework.response import Response
 from board_app.models import Board, Member, Task
-from .serializers import BoardSerializer, MemberSerializer, TaskSerializer
+from .serializers import (
+    BoardListSerializer,
+    MemberSerializer,
+    TaskSerializer,
+    BoardDetailSerializer,
+)
 
 
-class BoardsView(generics.ListCreateAPIView):
+class BoardsViewSet(viewsets.ModelViewSet):
     queryset = Board.objects.all()
-    serializer_class = BoardSerializer
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return BoardDetailSerializer
+        return BoardListSerializer
 
 
 class MembersView(generics.ListCreateAPIView):
