@@ -24,7 +24,7 @@ class Task(models.Model):
     ]
 
     title = models.CharField(max_length=50)
-    board = models.ForeignKey("Board", on_delete=models.CASCADE, related_name="boards")
+    board = models.ForeignKey("Board", on_delete=models.CASCADE, related_name="tasks")
     description = models.CharField(max_length=225)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="to_do")
     priority = models.CharField(
@@ -39,7 +39,6 @@ class Task(models.Model):
 class Board(models.Model):
     title = models.CharField(max_length=50)
     members = models.ManyToManyField(Member, related_name="boards", blank=True)
-    tasks = models.ManyToManyField(Task, related_name="boards", blank=True)
     # owner = models.ForeignKey(
     #     Member, on_delete=models.CASCADE, related_name="owned_boards"
     # )

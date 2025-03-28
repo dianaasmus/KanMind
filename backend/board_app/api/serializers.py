@@ -39,13 +39,6 @@ class MemberSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class BoardDetailSerializer(BoardListSerializer):
-    members = MemberSerializer(many=True)
-
-    class Meta(BoardListSerializer.Meta):
-        fields = BoardListSerializer.Meta.fields + ["members"]
-
-
 class TaskListSerializer(serializers.ModelSerializer):
     board = serializers.PrimaryKeyRelatedField(
         queryset=Board.objects.all(), write_only=True
@@ -53,7 +46,6 @@ class TaskListSerializer(serializers.ModelSerializer):
     board_id = serializers.IntegerField(source="board.id", read_only=True)
     assignee = MemberSerializer(read_only=True)
     reviewer = MemberSerializer(read_only=True)
-    # comments_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Task
@@ -68,11 +60,7 @@ class TaskListSerializer(serializers.ModelSerializer):
             "assignee",
             "reviewer",
             "due_date",
-            # "comments_count",
         ]
-
-    # def get_comments_count(self, obj):
-    #     return obj.comments.count()
 
     def create(self, validated_data):
         request = self.context.get("request")
@@ -88,8 +76,12 @@ class TaskListSerializer(serializers.ModelSerializer):
 
 
 class TaskDetailSerializer(TaskListSerializer):
-    # members = MemberSerializer(many=True)
-
-    # class Meta(BoardListSerializer.Meta):
-    #     fields = BoardListSerializer.Meta.fields + ["members"]
     pass
+
+
+class BoardDetailSerializer(BoardListSerializer):
+    members = MemberSerializer(many=True)
+    tasks = TaskDetailSerializer(many=True, read_only=True)
+
+    class Meta(BoardListSerializer.Meta):
+        fields = BoardListSerializer.Meta.fields + ["members", "tasks"]
