@@ -1,6 +1,8 @@
 from django.contrib import admin
 from .models import Board, Member, Task
 
+admin.site.index_title = "KanMind - Admin Panel"
+
 
 class MemberAdmin(admin.ModelAdmin):
     list_display = (
