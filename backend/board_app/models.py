@@ -12,8 +12,8 @@ class Member(models.Model):
 
 class Task(models.Model):
     STATUS_CHOICES = [
-        ("to_do", "To Do"),
-        ("in_progress", "In Progress"),
+        ("to-do", "To Do"),
+        ("in-progress", "In Progress"),
         ("done", "Done"),
         ("review", "Review"),
     ]
@@ -26,9 +26,13 @@ class Task(models.Model):
     title = models.CharField(max_length=50)
     board = models.ForeignKey("Board", on_delete=models.CASCADE, related_name="tasks")
     description = models.CharField(max_length=225)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="to_do")
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="to-do")
     priority = models.CharField(
         max_length=50, choices=PRIORITY_CHOICES, default="medium"
+    )
+    reviewer = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="tasks")
+    assignee = models.ForeignKey(
+        Member, on_delete=models.CASCADE, related_name="tasks_assign"
     )
     due_date = models.DateField(null=True, blank=True)
 
@@ -39,9 +43,9 @@ class Task(models.Model):
 class Board(models.Model):
     title = models.CharField(max_length=50)
     members = models.ManyToManyField(Member, related_name="boards", blank=True)
-    # owner = models.ForeignKey(
-    #     Member, on_delete=models.CASCADE, related_name="owned_boards"
-    # )
+    owner = models.ForeignKey(
+        Member, on_delete=models.CASCADE, related_name="owned_boards"
+    )
 
     def __str__(self):
         return self.title
