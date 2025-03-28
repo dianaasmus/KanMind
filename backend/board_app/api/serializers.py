@@ -5,16 +5,32 @@ from board_app.models import Board, Member, Task
 class BoardListSerializer(serializers.ModelSerializer):
     member_count = serializers.SerializerMethodField()
     ticket_count = serializers.SerializerMethodField()
+    tasks_to_do_count = serializers.SerializerMethodField()
+    tasks_high_prio_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Board
-        fields = ["id", "title", "member_count", "ticket_count"]
+        fields = [
+            "id",
+            "title",
+            "member_count",
+            "ticket_count",
+            "tasks_to_do_count",
+            "tasks_high_prio_count",
+            # "owner",
+        ]
 
     def get_member_count(self, obj):
         return obj.members.count()
 
     def get_ticket_count(self, obj):
         return obj.tasks.count()
+
+    def get_tasks_to_do_count(self, obj):
+        return obj.tasks.filter(status="to_do").count()
+
+    def get_tasks_high_prio_count(self, obj):
+        return obj.tasks.filter(status="high").count()
 
 
 class MemberSerializer(serializers.ModelSerializer):
@@ -30,7 +46,50 @@ class BoardDetailSerializer(BoardListSerializer):
         fields = BoardListSerializer.Meta.fields + ["members"]
 
 
-class TaskSerializer(serializers.ModelSerializer):
+class TaskListSerializer(serializers.ModelSerializer):
+    board = serializers.PrimaryKeyRelatedField(
+        queryset=Board.objects.all(), write_only=True
+    )
+    board_id = serializers.IntegerField(source="board.id", read_only=True)
+    assignee = MemberSerializer(read_only=True)
+    reviewer = MemberSerializer(read_only=True)
+    # comments_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Task
-        fields = "__all__"
+        fields = [
+            "id",
+            "board",
+            "board_id",
+            "title",
+            "description",
+            "status",
+            "priority",
+            "assignee",
+            "reviewer",
+            "due_date",
+            # "comments_count",
+        ]
+
+    # def get_comments_count(self, obj):
+    #     return obj.comments.count()
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        assignee_id = request.data.get("assignee_id")
+        reviewer_id = request.data.get("reviewer_id")
+
+        if assignee_id:
+            validated_data["assignee"] = User.objects.get(id=assignee_id)
+        if reviewer_id:
+            validated_data["reviewer"] = User.objects.get(id=reviewer_id)
+
+        return super().create(validated_data)
+
+
+class TaskDetailSerializer(TaskListSerializer):
+    # members = MemberSerializer(many=True)
+
+    # class Meta(BoardListSerializer.Meta):
+    #     fields = BoardListSerializer.Meta.fields + ["members"]
+    pass

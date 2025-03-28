@@ -4,8 +4,9 @@ from board_app.models import Board, Member, Task
 from .serializers import (
     BoardListSerializer,
     MemberSerializer,
-    TaskSerializer,
+    TaskListSerializer,
     BoardDetailSerializer,
+    TaskDetailSerializer,
 )
 
 
@@ -23,6 +24,16 @@ class MembersView(generics.ListCreateAPIView):
     serializer_class = MemberSerializer
 
 
-class TasksView(generics.ListCreateAPIView):
+class TasksViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
-    serializer_class = TaskSerializer
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return TaskDetailSerializer
+        return TaskListSerializer
+
+    def get_serializer_context(self):
+        """Stellt sicher, dass der Request an den Serializer übergeben wird"""
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
