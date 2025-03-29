@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from board_app.models import Board, Member, Task
+from board_app.models import Board, Member, Task, Comment
 
 
 class MemberSerializer(serializers.ModelSerializer):
@@ -62,6 +62,7 @@ class TaskListSerializer(serializers.ModelSerializer):
     board_id = serializers.IntegerField(source="board.id", read_only=True)
     assignee = MemberSerializer(read_only=True)
     reviewer = MemberSerializer(read_only=True)
+    comments = serializers.CharField(write_only=True)
 
     class Meta:
         model = Task
@@ -76,6 +77,7 @@ class TaskListSerializer(serializers.ModelSerializer):
             "assignee",
             "reviewer",
             "due_date",
+            "comments",
         ]
 
     def create(self, validated_data):
@@ -160,3 +162,20 @@ class BoardUpdateSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class CommentListSerializer(serializers.ModelSerializer):
+    author = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = ["id", "created_at", "author", "content"]
+
+    def get_author(self, obj):
+        return obj.author.fullname
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = "__all__"
