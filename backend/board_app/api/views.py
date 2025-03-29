@@ -7,6 +7,8 @@ from .serializers import (
     TaskListSerializer,
     BoardDetailSerializer,
     TaskDetailSerializer,
+    BoardUpdateSerializer,
+    TaskUpdateSerializer,
 )
 
 
@@ -14,9 +16,11 @@ class BoardsViewSet(viewsets.ModelViewSet):
     queryset = Board.objects.all()
 
     def get_serializer_class(self):
-        if self.action == "retrieve":
-            return BoardDetailSerializer
-        return BoardListSerializer
+        if self.action == "list":
+            return BoardListSerializer
+        elif self.action in ["update", "partial_update"]:
+            return BoardUpdateSerializer
+        return BoardDetailSerializer
 
 
 class MembersView(generics.ListCreateAPIView):
@@ -30,6 +34,8 @@ class TasksViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == "retrieve":
             return TaskDetailSerializer
+        elif self.action in ["update", "partial_update"]:
+            return TaskUpdateSerializer
         return TaskListSerializer
 
     def get_serializer_context(self):

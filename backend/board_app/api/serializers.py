@@ -92,13 +92,71 @@ class TaskListSerializer(serializers.ModelSerializer):
 
 
 class TaskDetailSerializer(TaskListSerializer):
-    pass
+    class Meta:
+        model = Task
+        fields = "__all__"
+
+
+class TaskUpdateSerializer(TaskListSerializer):
+    class Meta:
+        model = Task
+        fields = [
+            "id",
+            "title",
+            "description",
+            "status",
+            "priority",
+            "assignee",
+            "reviewer",
+            "due_date",
+        ]
 
 
 class BoardDetailSerializer(serializers.ModelSerializer):
-    members = MemberSerializer(many=True)
+    members = MemberSerializer(many=True, read_only=True)
     tasks = TaskDetailSerializer(many=True, read_only=True)
+    owner_data = serializers.SerializerMethodField()
+    members_data = serializers.SerializerMethodField()
 
     class Meta:
         model = Board
-        fields = "__all__"
+        fields = ["id", "title", "owner_data", "members_data", "members", "tasks"]
+
+    def get_owner_data(self, obj):
+        return MemberSerializer(obj.owner).data
+
+    def get_members_data(self, obj):
+        return MemberSerializer(obj.members.all(), many=True).data
+
+
+class BoardUpdateSerializer(serializers.ModelSerializer):
+    owner_data = serializers.SerializerMethodField(read_only=True)
+    members_data = serializers.SerializerMethodField(read_only=True)
+    members = serializers.PrimaryKeyRelatedField(
+        queryset=Member.objects.all(), many=True, required=False, write_only=True
+    )
+
+    class Meta:
+        model = Board
+        fields = ["id", "title", "owner_data", "members", "members_data"]
+
+    def get_owner_data(self, obj):
+        return MemberSerializer(obj.owner).data
+
+    def get_members_data(self, obj):
+        return MemberSerializer(obj.members.all(), many=True).data
+
+    def update(self, instance, validated_data):
+        if "title" in validated_data:
+            instance.title = validated_data.get("title")
+
+        if "members" in validated_data:
+            members = validated_data.get("members")
+            owner_in_members = any(member.id == instance.owner.id for member in members)
+            if not owner_in_members:
+                members.append(instance.owner)
+
+            instance.members.set(members)
+
+        instance.save()
+        return instance
