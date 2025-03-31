@@ -9,7 +9,7 @@ from .serializers import (
     TaskCommentSingleSerializer,
 )
 from rest_framework.permissions import IsAuthenticated
-from .permissions import IsStaffOrReadOnly
+from .permissions import IsStaffOrReadOnly, IsAdminForDeleteOrPatchAndReadOnly
 
 
 class BoardsListView(generics.ListCreateAPIView):
@@ -21,6 +21,7 @@ class BoardsListView(generics.ListCreateAPIView):
 class BoardSingleView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
+    permission_classes = [IsAdminForDeleteOrPatchAndReadOnly]
 
 
 class TasksListView(generics.ListCreateAPIView):
