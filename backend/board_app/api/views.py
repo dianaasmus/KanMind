@@ -1,6 +1,5 @@
-from rest_framework import generics, status, viewsets
-from rest_framework.response import Response
-from board_app.models import Board, Member, Task, Comment
+from rest_framework import generics
+from board_app.models import Board, Task, Comment
 from .serializers import (
     BoardListSerializer,
     BoardSerializer,
