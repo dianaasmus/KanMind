@@ -8,6 +8,91 @@ class MemberSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class TaskListSerializer(serializers.ModelSerializer):
+    board = serializers.PrimaryKeyRelatedField(
+        queryset=Board.objects.all(), write_only=True
+    )
+    board_id = serializers.IntegerField(source="board.id", read_only=True)
+    assignee = MemberSerializer(read_only=True)
+    reviewer = MemberSerializer(read_only=True)
+    comments = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = Task
+        fields = [
+            "id",
+            "board",
+            "board_id",
+            "title",
+            "description",
+            "status",
+            "priority",
+            "assignee",
+            "reviewer",
+            "due_date",
+            "comments",
+        ]
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        assignee_id = request.data.get("assignee_id")
+        reviewer_id = request.data.get("reviewer_id")
+
+        if assignee_id:
+            validated_data["assignee"] = Member.objects.get(id=assignee_id)
+        if reviewer_id:
+            validated_data["reviewer"] = Member.objects.get(id=reviewer_id)
+
+        return super().create(validated_data)
+
+
+class TaskSerializer(TaskListSerializer):
+    class Meta:
+        model = Task
+        fields = "__all__"
+
+
+class BoardSerializer(serializers.ModelSerializer):
+    members = MemberSerializer(many=True, read_only=True)
+    tasks = TaskSerializer(many=True, read_only=True)
+    owner_data = serializers.SerializerMethodField()
+    owner_id = serializers.IntegerField(read_only=True)
+    members_data = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Board
+        fields = [
+            "id",
+            "title",
+            "owner_id",
+            "owner_data",
+            "members",
+            "members_data",
+            "tasks",
+        ]
+
+    def get_owner_data(self, obj):
+        return MemberSerializer(obj.owner).data
+
+    def get_members_data(self, obj):
+        return MemberSerializer(obj.members.all(), many=True).data
+
+    def to_representation(self, value):
+        representation = super().to_representation(value)
+        request = self.context.get("request")
+
+        if request:
+            if request.method == "PATCH":
+                representation.pop("members", None)
+                representation.pop("owner_id", None)
+                representation.pop("tasks", None)
+            else:
+                representation.pop("owner_data", None)
+                representation.pop("members_data", None)
+
+        return representation
+
+
 class BoardListSerializer(serializers.ModelSerializer):
     owner_id = serializers.IntegerField(read_only=True)
     members = serializers.PrimaryKeyRelatedField(
@@ -55,50 +140,6 @@ class BoardListSerializer(serializers.ModelSerializer):
         return obj.tasks.filter(status="high").count()
 
 
-class TaskListSerializer(serializers.ModelSerializer):
-    board = serializers.PrimaryKeyRelatedField(
-        queryset=Board.objects.all(), write_only=True
-    )
-    board_id = serializers.IntegerField(source="board.id", read_only=True)
-    assignee = MemberSerializer(read_only=True)
-    reviewer = MemberSerializer(read_only=True)
-    comments = serializers.CharField(write_only=True)
-
-    class Meta:
-        model = Task
-        fields = [
-            "id",
-            "board",
-            "board_id",
-            "title",
-            "description",
-            "status",
-            "priority",
-            "assignee",
-            "reviewer",
-            "due_date",
-            "comments",
-        ]
-
-    def create(self, validated_data):
-        request = self.context.get("request")
-        assignee_id = request.data.get("assignee_id")
-        reviewer_id = request.data.get("reviewer_id")
-
-        if assignee_id:
-            validated_data["assignee"] = Member.objects.get(id=assignee_id)
-        if reviewer_id:
-            validated_data["reviewer"] = Member.objects.get(id=reviewer_id)
-
-        return super().create(validated_data)
-
-
-class TaskDetailSerializer(TaskListSerializer):
-    class Meta:
-        model = Task
-        fields = "__all__"
-
-
 class TaskUpdateSerializer(TaskListSerializer):
     class Meta:
         model = Task
@@ -114,21 +155,21 @@ class TaskUpdateSerializer(TaskListSerializer):
         ]
 
 
-class BoardDetailSerializer(serializers.ModelSerializer):
-    members = MemberSerializer(many=True, read_only=True)
-    tasks = TaskDetailSerializer(many=True, read_only=True)
-    owner_data = serializers.SerializerMethodField()
-    members_data = serializers.SerializerMethodField()
+# class BoardDetailSerializer(serializers.ModelSerializer):
+#     members = MemberSerializer(many=True, read_only=True)
+#     tasks = TaskDetailSerializer(many=True, read_only=True)
+#     owner_data = serializers.SerializerMethodField()
+#     members_data = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Board
-        fields = ["id", "title", "owner_data", "members_data", "members", "tasks"]
+#     class Meta:
+#         model = Board
+#         fields = ["id", "title", "owner_data", "members_data", "members", "tasks"]
 
-    def get_owner_data(self, obj):
-        return MemberSerializer(obj.owner).data
+#     def get_owner_data(self, obj):
+#         return MemberSerializer(obj.owner).data
 
-    def get_members_data(self, obj):
-        return MemberSerializer(obj.members.all(), many=True).data
+#     def get_members_data(self, obj):
+#         return MemberSerializer(obj.members.all(), many=True).data
 
 
 class BoardUpdateSerializer(serializers.ModelSerializer):
