@@ -13,7 +13,7 @@ from .serializers import (
     # CommentSerializer,
     BoardListSerializer,
     BoardSerializer,
-    TaskListSerializer,
+    TasksListSerializer,
     TaskSerializer,
     # TaskCommentsListView,
     # TaskCommentSingleView,
@@ -66,6 +66,16 @@ class BoardsListView(generics.ListCreateAPIView):
 class BoardSingleView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
+
+
+class TasksListView(generics.ListCreateAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TasksListSerializer
+
+
+class TaskSingleView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
 
 
 # class MembersView(generics.ListCreateAPIView):

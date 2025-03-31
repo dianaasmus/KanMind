@@ -8,7 +8,7 @@ class MemberSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class TaskListSerializer(serializers.ModelSerializer):
+class TasksListSerializer(serializers.ModelSerializer):
     board = serializers.PrimaryKeyRelatedField(
         queryset=Board.objects.all(), write_only=True
     )
@@ -46,10 +46,19 @@ class TaskListSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class TaskSerializer(TaskListSerializer):
+class TaskSerializer(TasksListSerializer):
     class Meta:
         model = Task
-        fields = "__all__"
+        fields = [
+            "id",
+            "title",
+            "description",
+            "status",
+            "priority",
+            "assignee",
+            "reviewer",
+            "due_date",
+        ]
 
 
 class BoardSerializer(serializers.ModelSerializer):
@@ -140,7 +149,7 @@ class BoardListSerializer(serializers.ModelSerializer):
         return obj.tasks.filter(status="high").count()
 
 
-class TaskUpdateSerializer(TaskListSerializer):
+class TaskUpdateSerializer(TasksListSerializer):
     class Meta:
         model = Task
         fields = [
