@@ -3,6 +3,13 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 class IsStaffOrReadOnly(BasePermission):
     def has_permission(self, request, view):
-        is_staff = bool(request.user and request.user.is_staff)
+        # Benutzer 'test' hat überhaupt keinen Zugriff
+        if request.user.username == "test":
+            return False
 
-        return is_staff or request.method in SAFE_METHODS
+        # Bei Lesemethoden (GET, HEAD, OPTIONS) wird Zugriff gewährt
+        if request.method in SAFE_METHODS:
+            return True
+
+        # Bei Schreibmethoden wird Zugriff nur Staff-Mitgliedern gewährt
+        return bool(request.user and request.user.is_staff)
