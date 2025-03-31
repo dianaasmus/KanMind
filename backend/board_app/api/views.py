@@ -9,13 +9,14 @@ from .serializers import (
     TaskCommentSingleSerializer,
 )
 from rest_framework.permissions import IsAuthenticated
+from .permissions import IsStaffOrReadOnly
 
 
 class BoardsListView(generics.ListCreateAPIView):
     queryset = Board.objects.all()
     serializer_class = BoardListSerializer
     permission_classes = [
-        IsAuthenticated
+        IsStaffOrReadOnly | IsAuthenticated  #  it supports & (and), | (or) and ~ (not).
     ]  # when you set new permission classes via the class attribute or decorators you're telling the view to ignore the default list set in the settings.py file.
 
 
