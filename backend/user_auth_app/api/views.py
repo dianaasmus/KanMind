@@ -1,15 +1,40 @@
-from rest_framework import generics
 from user_auth_app.models import UserProfile
-from .serializers import UserProfileSerializer
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from .serializers import RegistrationSerializer
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
+from django.contrib.auth.models import User
 
 
-class LoginView(APIView):
-    pass
+class CustomLoginView(ObtainAuthToken):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        email = request.data.get("email")
+
+        if email:
+            try:
+                user = User.objects.get(email=email)
+                request.data["username"] = user.username
+            except User.DoesNotExist:
+                return Response({"error": "Falsche E-Mail oder Passwort."}, status=400)
+
+        if serializer.is_valid():
+            user = serializer.validated_data["user"]
+            token, created = Token.objects.get_or_create(user=user)
+
+            response_data = {
+                "token": token.key,
+                "fullname": f"{user.first_name} {user.last_name}".strip(),
+                "email": user.email,
+                "user_id": user.id,
+            }
+            return Response(response_data, status=201)
+
+        return Response(serializer.errors, status=400)
 
 
 class RegistrationView(APIView):
@@ -29,6 +54,9 @@ class RegistrationView(APIView):
 
         if serializer.is_valid():
             saved_account = serializer.save()
+            saved_account.first_name = data["first_name"]
+            saved_account.last_name = data["last_name"]
+            saved_account.save()
             token, created = Token.objects.get_or_create(user=saved_account)
 
             user_profile = UserProfile.objects.create(
