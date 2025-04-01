@@ -8,14 +8,8 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 
 
-class UserProfileList(generics.ListCreateAPIView):
-    queryset = UserProfile.objects.all()
-    serializer_class = UserProfileSerializer
-
-
-class UserProfileSingleView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = UserProfile.objects.all()
-    serializer_class = UserProfileSerializer
+class LoginView(APIView):
+    pass
 
 
 class RegistrationView(APIView):
@@ -35,7 +29,7 @@ class RegistrationView(APIView):
 
         if serializer.is_valid():
             saved_account = serializer.save()
-            token, _ = Token.objects.get_or_create(user=saved_account)
+            token, created = Token.objects.get_or_create(user=saved_account)
 
             user_profile = UserProfile.objects.create(
                 user=saved_account, fullname=request.data["fullname"]
