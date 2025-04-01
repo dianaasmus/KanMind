@@ -19,7 +19,7 @@ from .permissions import (
 class BoardsListView(generics.ListCreateAPIView):
     queryset = Board.objects.all()
     serializer_class = BoardListSerializer
-    permission_classes = [IsStaffOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
 
 class BoardSingleView(generics.RetrieveUpdateDestroyAPIView):
