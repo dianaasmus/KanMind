@@ -8,24 +8,16 @@ from .serializers import (
     TaskCommentsListSerializer,
     TaskCommentSingleSerializer,
 )
-from rest_framework.permissions import IsAuthenticated
-from .permissions import (
-    IsStaffOrReadOnly,
-    IsAdminForDeleteOrPatchAndReadOnly,
-    IsAdminOrOwner,
-)
 
 
 class BoardsListView(generics.ListCreateAPIView):
     queryset = Board.objects.all()
     serializer_class = BoardListSerializer
-    permission_classes = [IsAuthenticated]
 
 
 class BoardSingleView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
-    permission_classes = [IsAdminOrOwner]
 
 
 class TasksListView(generics.ListCreateAPIView):
