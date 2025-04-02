@@ -6,6 +6,7 @@ from .views import (
     TaskSingleView,
     TaskCommentsListView,
     TaskCommentSingleView,
+    AssignedTasksView,
 )
 
 urlpatterns = [
@@ -17,5 +18,10 @@ urlpatterns = [
     path(
         "tasks/<int:task_id>/comments/<int:pk>/",
         TaskCommentSingleView.as_view(),
+    ),
+    path(
+        "tasks/assigned-to-me/",
+        AssignedTasksView.as_view(),
+        name="assigned_task",
     ),
 ]

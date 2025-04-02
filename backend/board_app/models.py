@@ -32,7 +32,7 @@ class Task(models.Model):
     )
     reviewer = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="tasks")
     assignee = models.ForeignKey(
-        Member, on_delete=models.CASCADE, related_name="tasks_assign"
+        Member, on_delete=models.CASCADE, related_name="assigned_task"
     )
     due_date = models.DateField(null=True, blank=True)
 

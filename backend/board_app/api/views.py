@@ -10,6 +10,11 @@ from .serializers import (
 )
 
 
+class AssignedTasksView(generics.ListAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TasksListSerializer
+
+
 class BoardsListView(generics.ListCreateAPIView):
     queryset = Board.objects.all()
     serializer_class = BoardListSerializer
