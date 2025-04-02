@@ -74,7 +74,6 @@ class TaskCommentsListSerializer(serializers.ModelSerializer):
 
 class TasksListSerializer(serializers.ModelSerializer):
     board = serializers.PrimaryKeyRelatedField(queryset=Board.objects.all())
-    # board_id = serializers.IntegerField(source="board.id", read_only=True)
     assignee = MemberSerializer(read_only=True)
     reviewer = MemberSerializer(read_only=True)
     comments = TaskCommentsListSerializer(many=True, write_only=True)
@@ -85,7 +84,6 @@ class TasksListSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "board",
-            # "board_id",
             "title",
             "description",
             "status",
