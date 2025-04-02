@@ -8,20 +8,84 @@ class MemberSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class TasksListSerializer(serializers.ModelSerializer):
-    board = serializers.PrimaryKeyRelatedField(
-        queryset=Board.objects.all(), write_only=True
+class TaskCommentSingleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = "__all__"
+
+
+class BoardListSerializer(serializers.ModelSerializer):
+    owner_id = serializers.IntegerField(read_only=True)
+    members = serializers.PrimaryKeyRelatedField(
+        queryset=Member.objects.all(), many=True, write_only=True
     )
-    board_id = serializers.IntegerField(source="board.id", read_only=True)
+    member_count = serializers.SerializerMethodField()
+    ticket_count = serializers.SerializerMethodField()
+    tasks_to_do_count = serializers.SerializerMethodField()
+    tasks_high_prio_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Board
+        fields = [
+            "id",
+            "title",
+            "members",
+            "member_count",
+            "ticket_count",
+            "tasks_to_do_count",
+            "tasks_high_prio_count",
+            "owner_id",
+        ]
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        members = validated_data.pop("members", [])
+        owner = request.user
+
+        board = Board.objects.create(owner=owner, **validated_data)
+        board.members.set(members)
+        board.members.add(owner)
+
+        return board
+
+    def get_member_count(self, obj):
+        return obj.members.count()
+
+    def get_ticket_count(self, obj):
+        return obj.tasks.count()
+
+    def get_tasks_to_do_count(self, obj):
+        return obj.tasks.filter(status="to-do").count()
+
+    def get_tasks_high_prio_count(self, obj):
+        return obj.tasks.filter(status="high").count()
+
+
+class TaskCommentsListSerializer(serializers.ModelSerializer):
+    author = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = ["id", "created_at", "author", "content"]
+
+    def get_author(self, obj):
+        return obj.author.fullname
+
+
+class TasksListSerializer(serializers.ModelSerializer):
+    board = serializers.PrimaryKeyRelatedField(queryset=Board.objects.all())
+    # board_id = serializers.IntegerField(source="board.id", read_only=True)
     assignee = MemberSerializer(read_only=True)
     reviewer = MemberSerializer(read_only=True)
+    comments = TaskCommentsListSerializer(many=True, write_only=True)
+    comments_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Task
         fields = [
             "id",
             "board",
-            "board_id",
+            # "board_id",
             "title",
             "description",
             "status",
@@ -29,6 +93,8 @@ class TasksListSerializer(serializers.ModelSerializer):
             "assignee",
             "reviewer",
             "due_date",
+            "comments",
+            "comments_count",
         ]
 
     def create(self, validated_data):
@@ -43,11 +109,8 @@ class TasksListSerializer(serializers.ModelSerializer):
 
         return super().create(validated_data)
 
-
-class TaskCommentSingleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Comment
-        fields = "__all__"
+    def get_comments_count(self, obj):
+        return obj.comments.count()
 
 
 class TaskSerializer(TasksListSerializer):
@@ -107,61 +170,3 @@ class BoardSerializer(serializers.ModelSerializer):
                 representation.pop("members_data", None)
 
         return representation
-
-
-class BoardListSerializer(serializers.ModelSerializer):
-    owner_id = serializers.IntegerField(read_only=True)
-    members = serializers.PrimaryKeyRelatedField(
-        queryset=Member.objects.all(), many=True, write_only=True
-    )
-    member_count = serializers.SerializerMethodField()
-    ticket_count = serializers.SerializerMethodField()
-    tasks_to_do_count = serializers.SerializerMethodField()
-    tasks_high_prio_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Board
-        fields = [
-            "id",
-            "title",
-            "members",
-            "member_count",
-            "ticket_count",
-            "tasks_to_do_count",
-            "tasks_high_prio_count",
-            "owner_id",
-        ]
-
-    def create(self, validated_data):
-        request = self.context.get("request")
-        members = validated_data.pop("members", [])
-        owner = request.user
-
-        board = Board.objects.create(owner=owner, **validated_data)
-        board.members.set(members)
-        board.members.add(owner)
-
-        return board
-
-    def get_member_count(self, obj):
-        return obj.members.count()
-
-    def get_ticket_count(self, obj):
-        return obj.tasks.count()
-
-    def get_tasks_to_do_count(self, obj):
-        return obj.tasks.filter(status="to-do").count()
-
-    def get_tasks_high_prio_count(self, obj):
-        return obj.tasks.filter(status="high").count()
-
-
-class TaskCommentsListSerializer(serializers.ModelSerializer):
-    author = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Comment
-        fields = ["id", "created_at", "author", "content"]
-
-    def get_author(self, obj):
-        return obj.author.fullname
