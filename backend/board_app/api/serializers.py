@@ -1,11 +1,12 @@
 from rest_framework import serializers
-from board_app.models import Board, Member, Task, Comment
+from board_app.models import Board, Task, Comment
+from django.contrib.auth.models import User
 
 
-class MemberSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Member
-        fields = "__all__"
+# class PrimaryKeyRelatedField(serializers.ModelSerializer):
+#     class Meta:
+#         model = Member
+#         fields = "__all__"
 
 
 class TaskCommentSingleSerializer(serializers.ModelSerializer):
@@ -17,7 +18,7 @@ class TaskCommentSingleSerializer(serializers.ModelSerializer):
 class BoardListSerializer(serializers.ModelSerializer):
     owner_id = serializers.IntegerField(read_only=True)
     members = serializers.PrimaryKeyRelatedField(
-        queryset=Member.objects.all(), many=True, write_only=True
+        queryset=User.objects.all(), many=True, write_only=True
     )
     member_count = serializers.SerializerMethodField()
     ticket_count = serializers.SerializerMethodField()
@@ -40,7 +41,7 @@ class BoardListSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context.get("request")
         members = validated_data.pop("members", [])
-        owner = request.user
+        owner = User.objects.get(email=request.user.email)
 
         board = Board.objects.create(owner=owner, **validated_data)
         board.members.set(members)
@@ -74,8 +75,12 @@ class TaskCommentsListSerializer(serializers.ModelSerializer):
 
 class TasksListSerializer(serializers.ModelSerializer):
     board = serializers.PrimaryKeyRelatedField(queryset=Board.objects.all())
-    assignee = MemberSerializer(read_only=True)
-    reviewer = MemberSerializer(read_only=True)
+    assignee = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), write_only=True
+    )
+    reviewer = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), write_only=True
+    )
     comments = TaskCommentsListSerializer(many=True, write_only=True)
     comments_count = serializers.SerializerMethodField(read_only=True)
 
@@ -101,9 +106,9 @@ class TasksListSerializer(serializers.ModelSerializer):
         reviewer_id = request.data.get("reviewer_id")
 
         if assignee_id:
-            validated_data["assignee"] = Member.objects.get(id=assignee_id)
+            validated_data["assignee"] = User.objects.get(id=assignee_id)
         if reviewer_id:
-            validated_data["reviewer"] = Member.objects.get(id=reviewer_id)
+            validated_data["reviewer"] = User.objects.get(id=reviewer_id)
 
         return super().create(validated_data)
 
@@ -130,7 +135,9 @@ class TaskSerializer(TasksListSerializer):
 
 
 class BoardSerializer(serializers.ModelSerializer):
-    members = MemberSerializer(many=True, read_only=True)
+    members = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), many=True, write_only=True
+    )
     tasks = TaskSerializer(many=True, read_only=True)
     owner_data = serializers.SerializerMethodField()
     owner_id = serializers.IntegerField(read_only=True)
@@ -149,10 +156,10 @@ class BoardSerializer(serializers.ModelSerializer):
         ]
 
     def get_owner_data(self, obj):
-        return MemberSerializer(obj.owner).data
+        return serializers.PrimaryKeyRelatedField(obj.owner).data
 
     def get_members_data(self, obj):
-        return MemberSerializer(obj.members.all(), many=True).data
+        return serializers.PrimaryKeyRelatedField(obj.members.all(), many=True).data
 
     def to_representation(self, value):
         representation = super().to_representation(value)

@@ -1,15 +1,8 @@
 from django.contrib import admin
-from .models import Board, Member, Task, Comment
+from .models import Board, Task, Comment
+
 
 admin.site.index_title = "KanMind - Admin Panel"
-
-
-class MemberAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "email",
-        "fullname",
-    )
 
 
 class BoardAdmin(admin.ModelAdmin):
@@ -28,6 +21,5 @@ class CommentAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Board, BoardAdmin)
-admin.site.register(Member, MemberAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(Comment, CommentAdmin)
