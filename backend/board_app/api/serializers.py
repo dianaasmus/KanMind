@@ -134,6 +134,12 @@ class TaskSerializer(TasksListSerializer):
         ]
 
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username", "email", "first_name", "last_name"]
+
+
 class BoardSerializer(serializers.ModelSerializer):
     members = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(), many=True, write_only=True
@@ -156,10 +162,10 @@ class BoardSerializer(serializers.ModelSerializer):
         ]
 
     def get_owner_data(self, obj):
-        return serializers.PrimaryKeyRelatedField(obj.owner).data
+        return UserSerializer(obj.owner).data
 
     def get_members_data(self, obj):
-        return serializers.PrimaryKeyRelatedField(obj.members.all(), many=True).data
+        return UserSerializer(obj.members.all(), many=True).data
 
     def to_representation(self, value):
         representation = super().to_representation(value)
