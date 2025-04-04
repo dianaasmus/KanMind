@@ -3,12 +3,6 @@ from board_app.models import Board, Task, Comment
 from django.contrib.auth.models import User
 
 
-# class PrimaryKeyRelatedField(serializers.ModelSerializer):
-#     class Meta:
-#         model = Member
-#         fields = "__all__"
-
-
 class TaskCommentSingleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
@@ -75,12 +69,10 @@ class TaskCommentsListSerializer(serializers.ModelSerializer):
 
 class TasksListSerializer(serializers.ModelSerializer):
     board = serializers.PrimaryKeyRelatedField(queryset=Board.objects.all())
-    assignee = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True
-    )
-    reviewer = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True
-    )
+    assignee = serializers.SerializerMethodField()
+    reviewer = serializers.SerializerMethodField()
+    # assignee = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    # reviewer = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     comments = TaskCommentsListSerializer(many=True, write_only=True)
     comments_count = serializers.SerializerMethodField(read_only=True)
 
@@ -115,6 +107,12 @@ class TasksListSerializer(serializers.ModelSerializer):
     def get_comments_count(self, obj):
         return obj.comments.count()
 
+    def get_assignee(self, obj):
+        return UserSerializer(obj.assignee).data
+
+    def get_reviewer(self, obj):
+        return UserSerializer(obj.reviewer).data
+
 
 class TaskSerializer(TasksListSerializer):
     comments = TaskCommentSingleSerializer(many=True, read_only=True)
@@ -135,15 +133,21 @@ class TaskSerializer(TasksListSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=225, write_only=True)
+    first_name = serializers.CharField(max_length=50, write_only=True)
+    last_name = serializers.CharField(max_length=50, write_only=True)
+    fullname = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = User
-        fields = ["id", "username", "email", "first_name", "last_name"]
+        fields = ["id", "username", "email", "first_name", "last_name", "fullname"]
+
+    def get_fullname(self, obj):
+        return obj.first_name + " " + obj.last_name
 
 
 class BoardSerializer(serializers.ModelSerializer):
-    members = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), many=True, write_only=True
-    )
+    members = UserSerializer(many=True)
     tasks = TaskSerializer(many=True, read_only=True)
     owner_data = serializers.SerializerMethodField()
     owner_id = serializers.IntegerField(read_only=True)
