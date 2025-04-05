@@ -1,7 +1,11 @@
 from rest_framework import generics
 from board_app.models import Board, Task, Comment
-from .permissions import IsMemberOrOwner
+from .permissions import IsMemberOrOwner, IsOwner
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
+from rest_framework import status
+
+
 from .serializers import (
     BoardListSerializer,
     BoardSerializer,
@@ -29,7 +33,11 @@ class BoardsListView(generics.ListCreateAPIView):
 class BoardSingleView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
-    permission_classes = [IsAuthenticated, IsMemberOrOwner]
+
+    def get_permissions(self):
+        if self.request.method == "DELETE":
+            return [IsAuthenticated(), IsOwner()]
+        return [IsAuthenticated(), IsMemberOrOwner()]
 
 
 class TasksListView(generics.ListCreateAPIView):
