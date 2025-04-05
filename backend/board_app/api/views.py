@@ -3,6 +3,7 @@ from board_app.models import Board, Task, Comment
 from .permissions import IsMemberOrOwner, IsOwner
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from django.contrib.auth.models import User
 
 from .serializers import (
     BoardListSerializer,
@@ -84,5 +85,9 @@ class EmailCheckView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-class ReviewingView(APIView):
-    pass
+class ReviewingView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TasksListSerializer
+
+    def get_queryset(self):
+        return Task.objects.filter(reviewer=self.request.user)
