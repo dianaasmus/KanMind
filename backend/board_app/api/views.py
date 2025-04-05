@@ -1,6 +1,7 @@
 from rest_framework import generics
 from board_app.models import Board, Task, Comment
-from .permissions import IsOwnerOrMember
+from .permissions import IsMemberOrOwner
+from rest_framework.permissions import IsAuthenticated
 from .serializers import (
     BoardListSerializer,
     BoardSerializer,
@@ -17,14 +18,18 @@ class AssignedTasksView(generics.ListAPIView):
 
 
 class BoardsListView(generics.ListCreateAPIView):
-    queryset = Board.objects.all()
     serializer_class = BoardListSerializer
+    permission_classes = [IsAuthenticated, IsMemberOrOwner]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Board.objects.filter(owner=user) | Board.objects.filter(members=user)
 
 
 class BoardSingleView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
-    permission_classes = [IsOwnerOrMember]
+    permission_classes = [IsAuthenticated, IsMemberOrOwner]
 
 
 class TasksListView(generics.ListCreateAPIView):

@@ -115,8 +115,9 @@ class TasksListSerializer(serializers.ModelSerializer):
 
 
 class TaskSerializer(TasksListSerializer):
-    comments = TaskCommentSingleSerializer(many=True, read_only=True)
+    comments_count = serializers.SerializerMethodField(read_only=True)
 
+    # comments = TaskCommentSingleSerializer(many=True, read_only=True)
     class Meta:
         model = Task
         fields = [
@@ -128,8 +129,12 @@ class TaskSerializer(TasksListSerializer):
             "assignee",
             "reviewer",
             "due_date",
-            "comments",
+            # "comments",
+            "comments_count",
         ]
+
+    def get_comments_count(self, obj):
+        return obj.comments.count()
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -148,9 +153,9 @@ class UserSerializer(serializers.ModelSerializer):
 
 class BoardSerializer(serializers.ModelSerializer):
     members = UserSerializer(many=True, read_only=True)
-    members = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), many=True, write_only=True
-    )
+    # members = serializers.PrimaryKeyRelatedField(
+    #     queryset=User.objects.all(), many=True, write_only=True
+    # )
     members_data = serializers.SerializerMethodField(read_only=True)
     tasks = TaskSerializer(many=True, read_only=True)
     owner_data = serializers.SerializerMethodField()
