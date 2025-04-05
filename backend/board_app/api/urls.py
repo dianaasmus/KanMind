@@ -7,6 +7,8 @@ from .views import (
     TaskCommentsListView,
     TaskCommentSingleView,
     AssignedTasksView,
+    EmailCheckView,
+    ReviewingView,
 )
 
 urlpatterns = [
@@ -24,4 +26,6 @@ urlpatterns = [
         AssignedTasksView.as_view(),
         name="assigned_task",
     ),
+    path("email-check/", EmailCheckView.as_view()),
+    path("reviewing/", ReviewingView.as_view()),
 ]

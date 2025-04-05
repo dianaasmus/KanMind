@@ -2,9 +2,7 @@ from rest_framework import generics
 from board_app.models import Board, Task, Comment
 from .permissions import IsMemberOrOwner, IsOwner
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import PermissionDenied
-from rest_framework import status
-
+from rest_framework.views import APIView
 
 from .serializers import (
     BoardListSerializer,
@@ -63,3 +61,28 @@ class TaskCommentSingleView(generics.RetrieveDestroyAPIView):
     serializer_class = TaskCommentSingleSerializer
     queryset = Comment.objects.all()
     lookup_url_kwarg = "task_id"
+
+
+class EmailCheckView(APIView):
+    def get(self, request):
+        email = request.query_params.get("email")
+
+        if not email:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+            return Response(
+                {
+                    "id": user.id,
+                    "email": user.email,
+                    "fullname": f"{user.first_name} {user.last_name}",
+                },
+                status=status.HTTP_200_OK,
+            )
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class ReviewingView(APIView):
+    pass

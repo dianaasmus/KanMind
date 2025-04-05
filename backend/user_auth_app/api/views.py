@@ -9,27 +9,6 @@ from django.contrib.auth.models import User
 from rest_framework import status
 
 
-class EmailCheckView(APIView):
-    def get(self, request):
-        email = request.query_params.get("email")
-
-        if not email:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            user = User.objects.get(email=email)
-            return Response(
-                {
-                    "id": user.id,
-                    "email": user.email,
-                    "fullname": f"{user.first_name} {user.last_name}",
-                },
-                status=status.HTTP_200_OK,
-            )
-        except User.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-
 class CustomLoginView(ObtainAuthToken):
     permission_classes = [AllowAny]
 
