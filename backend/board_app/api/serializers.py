@@ -147,11 +147,18 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class BoardSerializer(serializers.ModelSerializer):
-    members = UserSerializer(many=True)
+    members = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), many=True, write_only=True
+    )
+    # Read: vollständige Member-Daten
+    members_data = serializers.SerializerMethodField(read_only=True)
+    # tasks = TaskSerializer(many=True, read_only=True)
+    # owner_data = serializers.SerializerMethodField(read_only=True)
+    # owner_id = serializers.IntegerField(read_only=True)
     tasks = TaskSerializer(many=True, read_only=True)
     owner_data = serializers.SerializerMethodField()
     owner_id = serializers.IntegerField(read_only=True)
-    members_data = serializers.SerializerMethodField()
+    # members_data = serializers.SerializerMethodField()
 
     class Meta:
         model = Board
