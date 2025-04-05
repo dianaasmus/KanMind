@@ -14,10 +14,7 @@ class CustomUserAdmin(DefaultUserAdmin):
 
 
 class BoardAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "title",
-    )
+    list_display = ("id", "title")
 
 
 class TaskAdmin(admin.ModelAdmin):
