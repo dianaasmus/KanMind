@@ -67,20 +67,15 @@ class TaskCommentsListSerializer(serializers.ModelSerializer):
         return obj.author.fullname
 
 
-class TasksListSerializer(serializers.ModelSerializer):
-    board = serializers.PrimaryKeyRelatedField(queryset=Board.objects.all())
+class BaseTaskSerializer(serializers.ModelSerializer):
     assignee = serializers.SerializerMethodField()
     reviewer = serializers.SerializerMethodField()
-    description = serializers.CharField(required=False, allow_blank=True)
-    comments = TaskCommentsListSerializer(many=True, read_only=True)
     comments_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Task
         fields = [
             "id",
-            "board",
-            "board_id",
             "title",
             "description",
             "status",
@@ -88,9 +83,38 @@ class TasksListSerializer(serializers.ModelSerializer):
             "assignee",
             "reviewer",
             "due_date",
-            "comments",
             "comments_count",
         ]
+
+    def get_comments_count(self, obj):
+        return obj.comments.count()
+
+    def get_assignee(self, obj):
+        if obj.assignee:
+            return UserSerializer(obj.assignee).data
+        return None
+
+    def get_reviewer(self, obj):
+        if obj.reviewer:
+            return UserSerializer(obj.reviewer).data
+        return None
+
+
+class TasksListSerializer(BaseTaskSerializer):
+    board = serializers.PrimaryKeyRelatedField(queryset=Board.objects.all())
+    comments = TaskCommentsListSerializer(many=True, read_only=True)
+
+    class Meta(BaseTaskSerializer.Meta):
+        fields = BaseTaskSerializer.Meta.fields + [
+            "board",
+            "comments",
+        ]
+
+
+class TaskSerializer(BaseTaskSerializer):
+
+    class Meta(BaseTaskSerializer.Meta):
+        fields = BaseTaskSerializer.Meta.fields
 
     def create(self, validated_data):
         request = self.context.get("request")
@@ -104,57 +128,13 @@ class TasksListSerializer(serializers.ModelSerializer):
 
         return super().create(validated_data)
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
+    def get_fields(self):
+        fields = super().get_fields()
         request = self.context.get("request")
-
-        if request and request.method == "POST":
-            representation["board_id"] = representation.pop("board")
-            representation.pop("comments", None)
-        else:
-            representation["board"] = representation.pop("board_id")
-            representation.pop("comments", None)
-        return representation
-
-    def get_comments_count(self, obj):
-        return obj.comments.count()
-
-    def get_assignee(self, obj):
-        assignee = obj.assignee
-        if assignee:
-            return UserSerializer(assignee).data
-        else:
-            return None
-
-    def get_reviewer(self, obj):
-        reviewer = obj.reviewer
-        if reviewer:
-            return UserSerializer(reviewer).data
-        else:
-            return None
-
-
-class TaskSerializer(TasksListSerializer):
-    comments_count = serializers.SerializerMethodField(read_only=True)
-
-    # comments = TaskCommentSingleSerializer(many=True, read_only=True)
-    class Meta:
-        model = Task
-        fields = [
-            "id",
-            "title",
-            "description",
-            "status",
-            "priority",
-            "assignee",
-            "reviewer",
-            "due_date",
-            # "comments",
-            "comments_count",
-        ]
-
-    def get_comments_count(self, obj):
-        return obj.comments.count()
+        if request and request.method in ["PATCH"]:
+            fields.pop("comments", None)
+            fields.pop("comments_count", None)
+        return fields
 
 
 class UserSerializer(serializers.ModelSerializer):
