@@ -80,6 +80,7 @@ class TasksListSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "board",
+            "board_id",
             "title",
             "description",
             "status",
@@ -91,27 +92,29 @@ class TasksListSerializer(serializers.ModelSerializer):
             "comments_count",
         ]
 
-    def get_user_by_id(self, user_id, field_name):
-        try:
-            return User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            raise serializers.ValidationError({field_name: "User not found."})
-
     def create(self, validated_data):
         request = self.context.get("request")
-
         assignee_id = request.data.get("assignee_id")
         reviewer_id = request.data.get("reviewer_id")
 
         if assignee_id:
-            validated_data["assignee"] = self.get_user_by_id(assignee_id, "assignee_id")
-        else:
-            validated_data["assignee"] = None
-
+            validated_data["assignee"] = User.objects.get(id=assignee_id)
         if reviewer_id:
-            validated_data["reviewer"] = self.get_user_by_id(reviewer_id, "reviewer_id")
+            validated_data["reviewer"] = User.objects.get(id=reviewer_id)
 
         return super().create(validated_data)
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        request = self.context.get("request")
+
+        if request and request.method == "POST":
+            representation["board_id"] = representation.pop("board")
+            representation.pop("comments", None)
+        else:
+            representation["board"] = representation.pop("board_id")
+            representation.pop("comments", None)
+        return representation
 
     def get_comments_count(self, obj):
         return obj.comments.count()

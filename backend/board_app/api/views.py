@@ -44,11 +44,6 @@ class TasksListView(generics.ListCreateAPIView):
     serializer_class = TasksListSerializer
     permission_classes = [IsAuthenticated, IsMemberOrOwner]
 
-    # def get_permissions(self):
-    #     if self.request.method == "POST":
-    #         return [IsAuthenticated(), IsOwner()]
-    #     return [IsAuthenticated(), IsMemberOrOwner()]
-
 
 class TaskSingleView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Task.objects.all()
