@@ -71,9 +71,8 @@ class TasksListSerializer(serializers.ModelSerializer):
     board = serializers.PrimaryKeyRelatedField(queryset=Board.objects.all())
     assignee = serializers.SerializerMethodField()
     reviewer = serializers.SerializerMethodField()
-    # assignee = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    # reviewer = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    comments = TaskCommentsListSerializer(many=True, write_only=True)
+    description = serializers.CharField(required=False, allow_blank=True)
+    comments = TaskCommentsListSerializer(many=True, read_only=True)
     comments_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -92,15 +91,25 @@ class TasksListSerializer(serializers.ModelSerializer):
             "comments_count",
         ]
 
+    def get_user_by_id(self, user_id, field_name):
+        try:
+            return User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({field_name: "User not found."})
+
     def create(self, validated_data):
         request = self.context.get("request")
+
         assignee_id = request.data.get("assignee_id")
         reviewer_id = request.data.get("reviewer_id")
 
         if assignee_id:
-            validated_data["assignee"] = User.objects.get(id=assignee_id)
+            validated_data["assignee"] = self.get_user_by_id(assignee_id, "assignee_id")
+        else:
+            validated_data["assignee"] = None
+
         if reviewer_id:
-            validated_data["reviewer"] = User.objects.get(id=reviewer_id)
+            validated_data["reviewer"] = self.get_user_by_id(reviewer_id, "reviewer_id")
 
         return super().create(validated_data)
 
@@ -108,10 +117,18 @@ class TasksListSerializer(serializers.ModelSerializer):
         return obj.comments.count()
 
     def get_assignee(self, obj):
-        return UserSerializer(obj.assignee).data
+        assignee = obj.assignee
+        if assignee:
+            return UserSerializer(assignee).data
+        else:
+            return None
 
     def get_reviewer(self, obj):
-        return UserSerializer(obj.reviewer).data
+        reviewer = obj.reviewer
+        if reviewer:
+            return UserSerializer(reviewer).data
+        else:
+            return None
 
 
 class TaskSerializer(TasksListSerializer):

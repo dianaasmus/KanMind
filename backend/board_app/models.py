@@ -22,9 +22,15 @@ class Task(models.Model):
     priority = models.CharField(
         max_length=50, choices=PRIORITY_CHOICES, default="medium"
     )
-    reviewer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tasks")
+    reviewer = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="tasks"
+    )
     assignee = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="assigned_task"
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_task",
     )
     due_date = models.DateField(null=True, blank=True)
 
