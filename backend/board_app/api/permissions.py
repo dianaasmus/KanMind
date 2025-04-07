@@ -1,6 +1,7 @@
 from rest_framework.permissions import BasePermission
 from django.shortcuts import get_object_or_404
 from board_app.models import Board
+from rest_framework.exceptions import AuthenticationFailed
 
 
 class IsMemberOrOwner(BasePermission):
@@ -24,4 +25,9 @@ class IsMemberOrOwner(BasePermission):
 
 class IsOwner(BasePermission):
     def has_object_permission(self, request, view, obj):
-        return request.user == obj.owner
+        if request.user == obj.owner:
+            return True
+        else:
+            raise AuthenticationFailed(
+                "You must be the owner of this board to perform this action."
+            )
