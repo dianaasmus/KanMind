@@ -1,9 +1,11 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from board_app.models import Board, Task, Comment
 from .permissions import IsMemberOrOwner, IsOwner
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
+from rest_framework.response import Response
+
 
 from .serializers import (
     BoardListSerializer,
