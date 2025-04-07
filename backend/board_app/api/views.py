@@ -40,14 +40,27 @@ class BoardSingleView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class TasksListView(generics.ListCreateAPIView):
-    queryset = Task.objects.all()
+    # queryset = Task.objects.all()
     serializer_class = TasksListSerializer
-    permission_classes = [IsAuthenticated, IsMemberOrOwner]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Task.objects.filter(board__owner=user) | Task.objects.filter(
+            board__members=user
+        )
 
 
 class TaskSingleView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Task.objects.all()
+    # queryset = Task.objects.all()
     serializer_class = TaskSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Task.objects.filter(board__owner=user) | Task.objects.filter(
+            board__members=user
+        )
 
 
 class TaskCommentsListView(generics.ListCreateAPIView):
