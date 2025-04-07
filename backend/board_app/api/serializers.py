@@ -102,13 +102,33 @@ class BaseTaskSerializer(serializers.ModelSerializer):
 
 class TasksListSerializer(BaseTaskSerializer):
     board = serializers.PrimaryKeyRelatedField(queryset=Board.objects.all())
-    comments = TaskCommentsListSerializer(many=True, read_only=True)
+    board_id = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta(BaseTaskSerializer.Meta):
-        fields = BaseTaskSerializer.Meta.fields + [
+        fields = [
+            "id",
             "board",
-            "comments",
+            "board_id",
+            "title",
+            "description",
+            "status",
+            "priority",
+            "assignee",
+            "reviewer",
+            "due_date",
+            "comments_count",
         ]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        request = self.context.get("request")
+        if request and request.method == "POST":
+            representation.pop("board", None)
+        else:
+            representation.pop("board_id", None)
+
+        return representation
 
 
 class TaskSerializer(BaseTaskSerializer):
@@ -153,9 +173,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 class BoardSerializer(serializers.ModelSerializer):
     members = UserSerializer(many=True, read_only=True)
-    # members = serializers.PrimaryKeyRelatedField(
-    #     queryset=User.objects.all(), many=True, write_only=True
-    # )
     members_data = serializers.SerializerMethodField(read_only=True)
     tasks = TaskSerializer(many=True, read_only=True)
     owner_data = serializers.SerializerMethodField()

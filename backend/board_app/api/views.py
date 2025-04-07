@@ -18,8 +18,11 @@ from .serializers import (
 
 
 class AssignedTasksView(generics.ListAPIView):
-    queryset = Task.objects.all()
     serializer_class = TasksListSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Task.objects.filter(assignee=user)
 
 
 class BoardsListView(generics.ListCreateAPIView):
@@ -42,7 +45,6 @@ class BoardSingleView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class TasksListView(generics.ListCreateAPIView):
-    # queryset = Task.objects.all()
     serializer_class = TasksListSerializer
     permission_classes = [IsAuthenticated]
 
@@ -54,7 +56,6 @@ class TasksListView(generics.ListCreateAPIView):
 
 
 class TaskSingleView(generics.RetrieveUpdateDestroyAPIView):
-    # queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
 
