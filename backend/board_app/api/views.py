@@ -1,6 +1,6 @@
 from rest_framework import generics, status
 from board_app.models import Board, Task, Comment
-from .permissions import IsMemberOrOwner, IsOwner
+from .permissions import IsMember, IsOwner
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
@@ -27,7 +27,7 @@ class AssignedTasksView(generics.ListAPIView):
 
 class BoardsListView(generics.ListCreateAPIView):
     serializer_class = BoardListSerializer
-    permission_classes = [IsAuthenticated, IsMemberOrOwner]
+    permission_classes = [IsAuthenticated, IsMember, IsOwner]
 
     def get_queryset(self):
         user = self.request.user
@@ -41,7 +41,10 @@ class BoardSingleView(generics.RetrieveUpdateDestroyAPIView):
     def get_permissions(self):
         if self.request.method == "DELETE":
             return [IsAuthenticated(), IsOwner()]
-        return [IsAuthenticated(), IsMemberOrOwner()]
+        elif self.request.method in ["PUT", "PATCH"]:
+            return [IsAuthenticated(), IsMember(), IsOwner()]
+        else:
+            return [IsAuthenticated(), IsMember()]
 
 
 class TasksListView(generics.ListCreateAPIView):
@@ -57,13 +60,11 @@ class TasksListView(generics.ListCreateAPIView):
 
 class TaskSingleView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsMember]
 
     def get_queryset(self):
         user = self.request.user
-        return Task.objects.filter(board__owner=user) | Task.objects.filter(
-            board__members=user
-        )
+        return Task.objects.all()
 
 
 class TaskCommentsListView(generics.ListCreateAPIView):
