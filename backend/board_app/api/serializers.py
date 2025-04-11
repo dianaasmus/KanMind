@@ -119,6 +119,18 @@ class TasksListSerializer(BaseTaskSerializer):
             "comments_count",
         ]
 
+    def create(self, validated_data):
+        request = self.context.get("request")
+        assignee_id = request.data.get("assignee_id")
+        reviewer_id = request.data.get("reviewer_id")
+
+        if assignee_id:
+            validated_data["assignee"] = User.objects.get(id=assignee_id)
+        if reviewer_id:
+            validated_data["reviewer"] = User.objects.get(id=reviewer_id)
+
+        return super().create(validated_data)
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
 
@@ -136,17 +148,17 @@ class TaskSerializer(BaseTaskSerializer):
     class Meta(BaseTaskSerializer.Meta):
         fields = BaseTaskSerializer.Meta.fields
 
-    def create(self, validated_data):
-        request = self.context.get("request")
-        assignee_id = request.data.get("assignee_id")
-        reviewer_id = request.data.get("reviewer_id")
+    # def create(self, validated_data):
+    #     request = self.context.get("request")
+    #     assignee_id = request.data.get("assignee_id")
+    #     reviewer_id = request.data.get("reviewer_id")
 
-        if assignee_id:
-            validated_data["assignee"] = User.objects.get(id=assignee_id)
-        if reviewer_id:
-            validated_data["reviewer"] = User.objects.get(id=reviewer_id)
+    #     if assignee_id:
+    #         validated_data["assignee"] = User.objects.get(id=assignee_id)
+    #     if reviewer_id:
+    #         validated_data["reviewer"] = User.objects.get(id=reviewer_id)
 
-        return super().create(validated_data)
+    #     return super().create(validated_data)
 
     def get_fields(self):
         fields = super().get_fields()
