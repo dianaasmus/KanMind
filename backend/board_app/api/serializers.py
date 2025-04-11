@@ -148,17 +148,34 @@ class TaskSerializer(BaseTaskSerializer):
     class Meta(BaseTaskSerializer.Meta):
         fields = BaseTaskSerializer.Meta.fields
 
-    # def create(self, validated_data):
-    #     request = self.context.get("request")
-    #     assignee_id = request.data.get("assignee_id")
-    #     reviewer_id = request.data.get("reviewer_id")
+    def update(self, instance, validated_data):
+        request = self.context.get("request")
+        assignee_id = request.data.get("assignee_id")
+        reviewer_id = request.data.get("reviewer_id")
 
-    #     if assignee_id:
-    #         validated_data["assignee"] = User.objects.get(id=assignee_id)
-    #     if reviewer_id:
-    #         validated_data["reviewer"] = User.objects.get(id=reviewer_id)
+        if assignee_id:
+            try:
+                assignee = User.objects.get(id=assignee_id)
+                if assignee not in instance.board.members.all():
+                    raise serializers.ValidationError(
+                        {"assignee_id": "User is not a member of this board."}
+                    )
+                validated_data["assignee"] = assignee
+            except User.DoesNotExist:
+                raise serializers.ValidationError({"assignee_id": "User not found."})
 
-    #     return super().create(validated_data)
+        if reviewer_id:
+            try:
+                reviewer = User.objects.get(id=reviewer_id)
+                if reviewer not in instance.board.members.all():
+                    raise serializers.ValidationError(
+                        {"reviewer_id": "User is not a member of this board."}
+                    )
+                validated_data["reviewer"] = reviewer
+            except User.DoesNotExist:
+                raise serializers.ValidationError({"reviewer_id": "User not found."})
+
+        return super().update(instance, validated_data)
 
     def get_fields(self):
         fields = super().get_fields()
