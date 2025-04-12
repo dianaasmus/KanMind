@@ -24,6 +24,9 @@ class IsOwner(BasePermission):
             )
 
 
-class IsTaskCreator(BasePermission):
+class IsTaskCreatorOrBoardOwner(BasePermission):
     def has_object_permission(self, request, view, obj):
-        return obj.creator == request.user
+        is_creator = obj.creator == request.user
+        is_board_owner = obj.board.owner == request.user
+
+        return is_creator or is_board_owner

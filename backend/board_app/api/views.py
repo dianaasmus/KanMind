@@ -1,6 +1,6 @@
 from rest_framework import generics, status
 from board_app.models import Board, Task, Comment
-from .permissions import IsMember, IsOwner, IsTaskCreator
+from .permissions import IsMember, IsOwner, IsTaskCreatorOrBoardOwner
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
@@ -60,7 +60,6 @@ class TasksListView(generics.ListCreateAPIView):
 
 class TaskSingleView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = TaskSerializer
-    # permission_classes = [IsAuthenticated, IsMember]
 
     def get_queryset(self):
         user = self.request.user
@@ -68,7 +67,7 @@ class TaskSingleView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_permissions(self):
         if self.request.method == "DELETE":
-            return [IsAuthenticated(), IsTaskCreator(), IsOwner()]
+            return [IsAuthenticated(), IsTaskCreatorOrBoardOwner()]
         else:
             return [IsAuthenticated(), IsMember()]
 

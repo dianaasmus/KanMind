@@ -129,6 +129,8 @@ class TasksListSerializer(BaseTaskSerializer):
         if reviewer_id:
             validated_data["reviewer"] = User.objects.get(id=reviewer_id)
 
+        validated_data["creator"] = request.user
+
         return super().create(validated_data)
 
     def to_representation(self, instance):
@@ -180,11 +182,6 @@ class TaskSerializer(BaseTaskSerializer):
                 raise serializers.ValidationError({"reviewer_id": "User not found."})
 
         return super().update(instance, validated_data)
-
-    # def delete(self, instance, validated_data):
-    #     board = request.data.get("board")
-    #     board_owner = board.owner.get(id=request.user.id)
-    #     # assignee = User.objects.get(id=assignee_id)
 
     def get_fields(self):
         fields = super().get_fields()
