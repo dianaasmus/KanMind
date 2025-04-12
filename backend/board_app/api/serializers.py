@@ -152,6 +152,10 @@ class TaskSerializer(BaseTaskSerializer):
         request = self.context.get("request")
         assignee_id = request.data.get("assignee_id")
         reviewer_id = request.data.get("reviewer_id")
+        board = request.data.get("board")
+
+        if board:
+            raise serializers.ValidationError({"board": "Board can not be updated"})
 
         if assignee_id:
             try:
@@ -176,6 +180,11 @@ class TaskSerializer(BaseTaskSerializer):
                 raise serializers.ValidationError({"reviewer_id": "User not found."})
 
         return super().update(instance, validated_data)
+
+    # def delete(self, instance, validated_data):
+    #     board = request.data.get("board")
+    #     board_owner = board.owner.get(id=request.user.id)
+    #     # assignee = User.objects.get(id=assignee_id)
 
     def get_fields(self):
         fields = super().get_fields()

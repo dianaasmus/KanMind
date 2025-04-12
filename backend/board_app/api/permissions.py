@@ -22,3 +22,8 @@ class IsOwner(BasePermission):
             raise AuthenticationFailed(
                 "You must be the owner of this board to perform this action."
             )
+
+
+class IsTaskCreator(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.creator == request.user

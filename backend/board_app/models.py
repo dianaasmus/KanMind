@@ -15,6 +15,9 @@ class Task(models.Model):
         ("low", "Low"),
     ]
 
+    creator = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="created_tasks"
+    )
     title = models.CharField(max_length=50)
     board = models.ForeignKey("Board", on_delete=models.CASCADE, related_name="tasks")
     description = models.CharField(max_length=225)

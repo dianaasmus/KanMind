@@ -18,7 +18,7 @@ class BoardAdmin(admin.ModelAdmin):
 
 
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ("id", "title", "status", "priority")
+    list_display = ("id", "title", "status", "priority", "creator")
 
 
 class CommentAdmin(admin.ModelAdmin):
