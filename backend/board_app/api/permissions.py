@@ -30,3 +30,20 @@ class IsTaskCreatorOrBoardOwner(BasePermission):
         is_board_owner = obj.board.owner == request.user
 
         return is_creator or is_board_owner
+
+
+class IsCommentMemberOrOwner(BasePermission):
+    def has_permission(self, request, view):
+        task_id = view.kwargs.get("pk")
+        try:
+            task = Task.objects.get(pk=task_id)
+            board = task.board
+            user = request.user
+
+            is_board_owner = board.owner == user
+            is_board_member = board.members.filter(id=user.id).exists()
+
+            return is_board_owner or is_board_member
+
+        except Task.DoesNotExist:
+            return False

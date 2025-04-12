@@ -1,6 +1,11 @@
 from rest_framework import generics, status
 from board_app.models import Board, Task, Comment
-from .permissions import IsMember, IsOwner, IsTaskCreatorOrBoardOwner
+from .permissions import (
+    IsMember,
+    IsOwner,
+    IsTaskCreatorOrBoardOwner,
+    IsCommentMemberOrOwner,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
@@ -74,6 +79,7 @@ class TaskSingleView(generics.RetrieveUpdateDestroyAPIView):
 
 class TaskCommentsListView(generics.ListCreateAPIView):
     serializer_class = TaskCommentsListSerializer
+    permission_classes = [IsAuthenticated, IsCommentMemberOrOwner]
 
     def get_queryset(self):
         pk = self.kwargs.get("pk")

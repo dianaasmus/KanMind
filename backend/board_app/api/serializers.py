@@ -64,7 +64,7 @@ class TaskCommentsListSerializer(serializers.ModelSerializer):
         fields = ["id", "created_at", "author", "content"]
 
     def get_author(self, obj):
-        return obj.author.fullname
+        return obj.author.first_name + " " + obj.author.last_name
 
 
 class BaseTaskSerializer(serializers.ModelSerializer):
