@@ -18,7 +18,7 @@ urlpatterns = [
     path("tasks/<int:pk>/", TaskSingleView.as_view()),
     path("tasks/<int:pk>/comments/", TaskCommentsListView.as_view()),
     path(
-        "tasks/<int:task_id>/comments/<int:pk>/",
+        "tasks/<int:task_id>/comments/<int:comment_id>/",
         TaskCommentSingleView.as_view(),
     ),
     path(

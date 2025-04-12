@@ -66,6 +66,20 @@ class TaskCommentsListSerializer(serializers.ModelSerializer):
     def get_author(self, obj):
         return obj.author.first_name + " " + obj.author.last_name
 
+    def create(self, validated_data):
+        request = self.context.get("request")
+        view = self.context.get("view")
+        task_id = view.kwargs.get("pk")
+
+        task = Task.objects.get(pk=task_id)
+        author = request.user
+
+        comment = Comment.objects.create(
+            task=task, author=author, content=validated_data.get("content")
+        )
+
+        return comment
+
 
 class BaseTaskSerializer(serializers.ModelSerializer):
     assignee = serializers.SerializerMethodField()

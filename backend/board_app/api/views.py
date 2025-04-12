@@ -5,6 +5,7 @@ from .permissions import (
     IsOwner,
     IsTaskCreatorOrBoardOwner,
     IsCommentMemberOrOwner,
+    isCreator,
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -90,7 +91,8 @@ class TaskCommentsListView(generics.ListCreateAPIView):
 class TaskCommentSingleView(generics.RetrieveDestroyAPIView):
     serializer_class = TaskCommentSingleSerializer
     queryset = Comment.objects.all()
-    lookup_url_kwarg = "task_id"
+    lookup_url_kwarg = "comment_id"
+    permission_classes = [IsAuthenticated, isCreator]
 
 
 class EmailCheckView(APIView):
