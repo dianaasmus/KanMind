@@ -1,16 +1,33 @@
 from django.contrib import admin
 from .models import Board, Task, Comment
 from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
 
-
 admin.site.index_title = "KanMind - Admin Panel"
+
+
+class CustomUserAdmin(UserAdmin):
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "username",
+                    "password1",
+                    "password2",
+                    "first_name",
+                    "last_name",
+                    "email",
+                ),
+            },
+        ),
+    )
+
+
 admin.site.unregister(User)
-
-
-@admin.register(User)  # Django User Model erweitern, für id
-class CustomUserAdmin(DefaultUserAdmin):
-    list_display = ("id", "username", "email", "first_name", "last_name", "is_staff")
+admin.site.register(User, CustomUserAdmin)
 
 
 class BoardAdmin(admin.ModelAdmin):
