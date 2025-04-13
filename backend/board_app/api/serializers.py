@@ -140,6 +140,7 @@ class TasksListSerializer(BaseTaskSerializer):
 
         if assignee_id:
             validated_data["assignee"] = User.objects.get(id=assignee_id)
+
         if reviewer_id:
             validated_data["reviewer"] = User.objects.get(id=reviewer_id)
 
@@ -168,10 +169,6 @@ class TaskSerializer(BaseTaskSerializer):
         request = self.context.get("request")
         assignee_id = request.data.get("assignee_id")
         reviewer_id = request.data.get("reviewer_id")
-        board = request.data.get("board")
-
-        if board:
-            raise serializers.ValidationError({"board": "Board can not be updated"})
 
         if assignee_id:
             try:
