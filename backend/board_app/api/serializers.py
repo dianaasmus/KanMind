@@ -116,13 +116,11 @@ class BaseTaskSerializer(serializers.ModelSerializer):
 
 class TasksListSerializer(BaseTaskSerializer):
     board = serializers.PrimaryKeyRelatedField(queryset=Board.objects.all())
-    board_id = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta(BaseTaskSerializer.Meta):
         fields = [
             "id",
             "board",
-            "board_id",
             "title",
             "description",
             "status",
@@ -147,17 +145,6 @@ class TasksListSerializer(BaseTaskSerializer):
         validated_data["creator"] = request.user
 
         return super().create(validated_data)
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-
-        request = self.context.get("request")
-        if request and request.method == "POST":
-            representation.pop("board", None)
-        else:
-            representation.pop("board_id", None)
-
-        return representation
 
 
 class TaskSerializer(BaseTaskSerializer):

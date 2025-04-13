@@ -18,10 +18,13 @@ class IsOwner(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.user == obj.owner:
             return True
-        else:
-            raise AuthenticationFailed(
-                "You must be the owner of this board to perform this action."
-            )
+
+
+class IsOwnerOrMember(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        is_member = IsMember().has_object_permission(request, view, obj)
+        is_owner = IsOwner().has_object_permission(request, view, obj)
+        return is_member or is_owner
 
 
 class IsTaskCreatorOrBoardOwner(BasePermission):

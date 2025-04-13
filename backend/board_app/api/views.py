@@ -1,11 +1,13 @@
 from rest_framework import generics, status
 from board_app.models import Board, Task, Comment
+
 from .permissions import (
     IsMember,
     IsOwner,
     IsTaskCreatorOrBoardOwner,
     IsCommentMemberOrOwner,
     isCreator,
+    IsOwnerOrMember,
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -48,7 +50,7 @@ class BoardSingleView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.method == "DELETE":
             return [IsAuthenticated(), IsOwner()]
         elif self.request.method in ["PUT", "PATCH"]:
-            return [IsAuthenticated(), IsMember(), IsOwner()]
+            return [IsAuthenticated(), IsOwnerOrMember()]
         else:
             return [IsAuthenticated(), IsMember()]
 

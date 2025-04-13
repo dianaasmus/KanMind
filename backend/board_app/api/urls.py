@@ -20,7 +20,7 @@ urlpatterns = [
         AssignedTasksView.as_view(),
         name="assigned_task",
     ),
-    path("reviewing/", ReviewingView.as_view()),
+    path("tasks/reviewing/", ReviewingView.as_view()),
     path("tasks/", TasksListView.as_view()),
     path("tasks/<int:pk>/", TaskSingleView.as_view()),
     path("tasks/<int:pk>/comments/", TaskCommentsListView.as_view()),
