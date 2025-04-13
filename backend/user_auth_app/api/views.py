@@ -33,7 +33,7 @@ class CustomLoginView(ObtainAuthToken):
                 "email": user.email,
                 "user_id": user.id,
             }
-            return Response(response_data, status=201)
+            return Response(response_data, status=200)
 
         return Response(serializer.errors, status=400)
 
