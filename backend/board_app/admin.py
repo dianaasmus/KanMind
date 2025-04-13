@@ -8,6 +8,7 @@ admin.site.index_title = "KanMind - Admin Panel"
 
 
 class CustomUserAdmin(UserAdmin):
+    list_display = ("id", "username", "email", "first_name", "last_name", "is_staff")
     add_fieldsets = (
         (
             None,
@@ -26,10 +27,6 @@ class CustomUserAdmin(UserAdmin):
     )
 
 
-admin.site.unregister(User)
-admin.site.register(User, CustomUserAdmin)
-
-
 class BoardAdmin(admin.ModelAdmin):
     list_display = ("id", "title")
 
@@ -45,3 +42,5 @@ class CommentAdmin(admin.ModelAdmin):
 admin.site.register(Board, BoardAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(Comment, CommentAdmin)
+admin.site.unregister(User)
+admin.site.register(User, CustomUserAdmin)
