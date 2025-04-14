@@ -49,10 +49,10 @@ class BoardSingleView(generics.RetrieveUpdateDestroyAPIView):
     def get_permissions(self):
         if self.request.method == "DELETE":
             return [IsAuthenticated(), IsOwner()]
-        elif self.request.method in ["PUT", "PATCH"]:
+        elif self.request.method in ["PATCH"]:
             return [IsAuthenticated(), IsOwnerOrMember()]
         else:
-            return [IsAuthenticated(), IsMember()]
+            return [IsAuthenticated(), IsOwnerOrMember()]
 
 
 class TasksListView(generics.ListCreateAPIView):
