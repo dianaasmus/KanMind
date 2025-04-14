@@ -205,7 +205,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class BoardSerializer(serializers.ModelSerializer):
-    members = UserSerializer(many=True, read_only=True)
+    members = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all())
     members_data = serializers.SerializerMethodField(read_only=True)
     tasks = TaskSerializer(many=True, read_only=True)
     owner_data = serializers.SerializerMethodField()
@@ -222,6 +222,16 @@ class BoardSerializer(serializers.ModelSerializer):
             "members_data",
             "tasks",
         ]
+
+    def update(self, instance, validated_data):
+        members = validated_data.get("members")
+
+        if members is not None:
+            instance.members.set(members)
+
+        instance.title = validated_data.get("title", instance.title)
+        instance.save()
+        return instance
 
     def get_owner_data(self, obj):
         return UserSerializer(obj.owner).data
