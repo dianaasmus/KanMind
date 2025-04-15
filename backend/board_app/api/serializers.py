@@ -205,7 +205,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class BoardSerializer(serializers.ModelSerializer):
-    members = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all())
     members_data = serializers.SerializerMethodField(read_only=True)
     tasks = TaskSerializer(many=True, read_only=True)
     owner_data = serializers.SerializerMethodField()
@@ -238,6 +237,17 @@ class BoardSerializer(serializers.ModelSerializer):
 
     def get_members_data(self, obj):
         return UserSerializer(obj.members.all(), many=True).data
+
+    def get_fields(self):
+        fields = super().get_fields()
+        request = self.context.get("request")
+        if request and request.method == "PATCH":
+            fields["members"] = serializers.PrimaryKeyRelatedField(
+                many=True, queryset=User.objects.all()
+            )
+        else:
+            fields["members"] = UserSerializer(many=True, read_only=True)
+        return fields
 
     def to_representation(self, value):
         representation = super().to_representation(value)
