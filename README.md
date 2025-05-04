@@ -27,4 +27,4 @@ Django REST Framework
 📦 Columns/Statuses: Move tasks between status columns (e.g., "Todo", "In Progress", "Done")  
 👤 User Accounts (optional): Authentication and user-specific data  
 🧩 REST API: Fully built with Django REST Framework — ideal for a decoupled frontend  
-🔐 Authentication: Support for JWT or session-based authentication (configurable)  
+🔐 Authentication: Support for TokenAuthentication
