@@ -14,7 +14,6 @@ from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 
-
 from .serializers import (
     BoardListSerializer,
     BoardSerializer,
@@ -26,6 +25,10 @@ from .serializers import (
 
 
 class AssignedTasksView(generics.ListAPIView):
+    """
+    API view to retrieve a list of tasks assigned to the authenticated user.
+    """
+
     serializer_class = TasksListSerializer
 
     def get_queryset(self):
@@ -34,6 +37,11 @@ class AssignedTasksView(generics.ListAPIView):
 
 
 class BoardsListView(generics.ListCreateAPIView):
+    """
+    API view to list and create boards for the authenticated user.
+    User must be the owner or a member to view.
+    """
+
     serializer_class = BoardListSerializer
     permission_classes = [IsAuthenticated, IsMember, IsOwner]
 
@@ -43,10 +51,18 @@ class BoardsListView(generics.ListCreateAPIView):
 
 
 class BoardSingleView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    API view to retrieve, update, or delete a single board instance.
+    Permissions vary based on request method.
+    """
+
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
 
     def get_permissions(self):
+        """
+        Return permissions based on request method.
+        """
         if self.request.method == "DELETE":
             return [IsAuthenticated(), IsOwner()]
         elif self.request.method in ["PATCH"]:
@@ -56,6 +72,11 @@ class BoardSingleView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class TasksListView(generics.ListCreateAPIView):
+    """
+    API view to list or create tasks related to boards
+    the authenticated user owns or is a member of.
+    """
+
     serializer_class = TasksListSerializer
     permission_classes = [IsAuthenticated]
 
@@ -67,6 +88,11 @@ class TasksListView(generics.ListCreateAPIView):
 
 
 class TaskSingleView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    API view to retrieve, update, or delete a specific task.
+    Only board members can view/update; only creator or board owner can delete.
+    """
+
     serializer_class = TaskSerializer
 
     def get_queryset(self):
@@ -74,6 +100,9 @@ class TaskSingleView(generics.RetrieveUpdateDestroyAPIView):
         return Task.objects.all()
 
     def get_permissions(self):
+        """
+        Return permissions based on request method.
+        """
         if self.request.method == "DELETE":
             return [IsAuthenticated(), IsTaskCreatorOrBoardOwner()]
         else:
@@ -81,6 +110,11 @@ class TaskSingleView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class TaskCommentsListView(generics.ListCreateAPIView):
+    """
+    API view to list and create comments for a specific task.
+    Only board members or the owner can access.
+    """
+
     serializer_class = TaskCommentsListSerializer
     permission_classes = [IsAuthenticated, IsCommentMemberOrOwner]
 
@@ -91,6 +125,11 @@ class TaskCommentsListView(generics.ListCreateAPIView):
 
 
 class TaskCommentSingleView(generics.RetrieveDestroyAPIView):
+    """
+    API view to retrieve or delete a single comment on a task.
+    Only the comment creator can delete it.
+    """
+
     serializer_class = TaskCommentSingleSerializer
     queryset = Comment.objects.all()
     lookup_url_kwarg = "comment_id"
@@ -98,6 +137,11 @@ class TaskCommentSingleView(generics.RetrieveDestroyAPIView):
 
 
 class EmailCheckView(APIView):
+    """
+    API view to check whether a user with the given email exists.
+    Returns user info if found, otherwise 404.
+    """
+
     def get(self, request):
         email = request.query_params.get("email")
 
@@ -119,6 +163,10 @@ class EmailCheckView(APIView):
 
 
 class ReviewingView(generics.ListAPIView):
+    """
+    API view to retrieve a list of tasks where the authenticated user is the reviewer.
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = TasksListSerializer
 

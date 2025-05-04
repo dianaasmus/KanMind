@@ -10,9 +10,20 @@ from rest_framework import status
 
 
 class CustomLoginView(ObtainAuthToken):
+    """
+    Custom login view that allows users to authenticate using their email address.
+    Returns an authentication token and basic user information on success.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Handles POST requests for user login.
+
+        If an email is provided, it retrieves the corresponding username for authentication.
+        Returns a token and user details if credentials are valid.
+        """
         serializer = self.serializer_class(data=request.data)
         email = request.data.get("email")
 
@@ -21,7 +32,7 @@ class CustomLoginView(ObtainAuthToken):
                 user = User.objects.get(email=email)
                 request.data["username"] = user.username
             except User.DoesNotExist:
-                return Response({"error": "Falsche E-Mail oder Passwort."}, status=400)
+                return Response({"error": "Invalid email or password."}, status=400)
 
         if serializer.is_valid():
             user = serializer.validated_data["user"]
@@ -39,9 +50,20 @@ class CustomLoginView(ObtainAuthToken):
 
 
 class RegistrationView(APIView):
+    """
+    Handles user registration via API.
+    Accepts a fullname field and automatically splits it into first and last name.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Handles POST requests for registering a new user.
+
+        Accepts fullname, email, password, and repeated password.
+        Creates the user, user profile, and returns a token and user info.
+        """
         data = request.data.copy()
 
         if "fullname" in data:

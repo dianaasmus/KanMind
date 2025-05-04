@@ -4,12 +4,20 @@ from django.contrib.auth.models import User
 
 
 class TaskCommentSingleSerializer(serializers.ModelSerializer):
+    """
+    Serializer for displaying or creating a single task comment.
+    """
+
     class Meta:
         model = Comment
         fields = "__all__"
 
 
 class BoardListSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing boards with metadata and creating new boards.
+    """
+
     owner_id = serializers.IntegerField(read_only=True)
     members = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(), many=True, write_only=True
@@ -33,6 +41,9 @@ class BoardListSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
+        """
+        Creates a board and adds the current user as the owner and member.
+        """
         request = self.context.get("request")
         members = validated_data.pop("members", [])
         owner = User.objects.get(email=request.user.email)
@@ -57,6 +68,10 @@ class BoardListSerializer(serializers.ModelSerializer):
 
 
 class TaskCommentsListSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing or creating comments on a specific task.
+    """
+
     author = serializers.SerializerMethodField()
 
     class Meta:
@@ -67,6 +82,9 @@ class TaskCommentsListSerializer(serializers.ModelSerializer):
         return obj.author.first_name + " " + obj.author.last_name
 
     def create(self, validated_data):
+        """
+        Creates a new comment for a specific task.
+        """
         request = self.context.get("request")
         view = self.context.get("view")
         task_id = view.kwargs.get("pk")
@@ -82,6 +100,10 @@ class TaskCommentsListSerializer(serializers.ModelSerializer):
 
 
 class BaseTaskSerializer(serializers.ModelSerializer):
+    """
+    Base serializer for task-related serializers.
+    """
+
     assignee = serializers.SerializerMethodField()
     reviewer = serializers.SerializerMethodField()
     comments_count = serializers.SerializerMethodField(read_only=True)
@@ -115,6 +137,10 @@ class BaseTaskSerializer(serializers.ModelSerializer):
 
 
 class TasksListSerializer(BaseTaskSerializer):
+    """
+    Serializer for creating and listing tasks.
+    """
+
     board = serializers.PrimaryKeyRelatedField(queryset=Board.objects.all())
 
     class Meta(BaseTaskSerializer.Meta):
@@ -132,6 +158,9 @@ class TasksListSerializer(BaseTaskSerializer):
         ]
 
     def create(self, validated_data):
+        """
+        Creates a new task and assigns creator, assignee, and reviewer.
+        """
         request = self.context.get("request")
         assignee_id = request.data.get("assignee_id")
         reviewer_id = request.data.get("reviewer_id")
@@ -148,11 +177,17 @@ class TasksListSerializer(BaseTaskSerializer):
 
 
 class TaskSerializer(BaseTaskSerializer):
+    """
+    Serializer for retrieving and updating a single task.
+    """
 
     class Meta(BaseTaskSerializer.Meta):
         fields = BaseTaskSerializer.Meta.fields
 
     def update(self, instance, validated_data):
+        """
+        Updates task and validates assignee/reviewer membership.
+        """
         request = self.context.get("request")
         assignee_id = request.data.get("assignee_id")
         reviewer_id = request.data.get("reviewer_id")
@@ -182,6 +217,9 @@ class TaskSerializer(BaseTaskSerializer):
         return super().update(instance, validated_data)
 
     def get_fields(self):
+        """
+        Dynamically removes fields for partial update (PATCH).
+        """
         fields = super().get_fields()
         request = self.context.get("request")
         if request and request.method in ["PATCH"]:
@@ -191,6 +229,10 @@ class TaskSerializer(BaseTaskSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Django's User model, with full name display.
+    """
+
     username = serializers.CharField(max_length=225, write_only=True)
     first_name = serializers.CharField(max_length=50, write_only=True)
     last_name = serializers.CharField(max_length=50, write_only=True)
@@ -205,6 +247,10 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class BoardSerializer(serializers.ModelSerializer):
+    """
+    Full detail serializer for a board including members, owner, and tasks.
+    """
+
     members_data = serializers.SerializerMethodField(read_only=True)
     tasks = TaskSerializer(many=True, read_only=True)
     owner_data = serializers.SerializerMethodField()
@@ -223,6 +269,9 @@ class BoardSerializer(serializers.ModelSerializer):
         ]
 
     def update(self, instance, validated_data):
+        """
+        Updates board members and title.
+        """
         members = validated_data.get("members")
 
         if members is not None:
@@ -239,6 +288,9 @@ class BoardSerializer(serializers.ModelSerializer):
         return UserSerializer(obj.members.all(), many=True).data
 
     def get_fields(self):
+        """
+        Dynamically switches member field between read/write based on request method.
+        """
         fields = super().get_fields()
         request = self.context.get("request")
         if request and request.method == "PATCH":
@@ -250,6 +302,9 @@ class BoardSerializer(serializers.ModelSerializer):
         return fields
 
     def to_representation(self, value):
+        """
+        Adjusts output fields based on request method.
+        """
         representation = super().to_representation(value)
         request = self.context.get("request")
 
