@@ -1,0 +1,29 @@
+# https://taskfile.dev
+
+version: '3'
+
+output: prefixed
+
+vars:
+  starting: Starting Server...
+
+tasks:
+  kanmind:
+    deps: [backend, frontend]
+
+  backend: 
+    dir: backend
+    cmds: 
+      - echo "Start Django-Server..."
+      - |
+        if python manage.py showmigrations --plan | grep -q '\[ \]'; then
+          echo "There are outstanding migrations. Executing 'migrate'..."
+          python manage.py migrate
+        fi
+      - python manage.py runserver
+
+  frontend: 
+    dir: frontend
+    cmds:
+      - echo "Start Vite-Frontend..."
+      - pnpm dev
