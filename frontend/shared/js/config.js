@@ -1,6 +1,6 @@
 const GUEST_LOGIN = {
-  email: "kevin@kovacsi.de",
-  password: "asdasdasd",
+  email: "guest@user.de",
+  password: "Hsqh6AeT5N*.rz6",
 };
 
 const API_BASE_URL = "http://localhost:8000/api/";
