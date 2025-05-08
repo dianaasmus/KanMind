@@ -7,6 +7,7 @@ output: prefixed
 vars:
   starting: Starting Server...
 
+# to start dependencies execute "task kanmind"
 tasks:
   kanmind:
     deps: [backend, frontend]
