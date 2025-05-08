@@ -2,6 +2,7 @@
 
 KanMind is a backend project written in Python with the Django Web Framework and the Django REST Framework (DRF). It provides a structured API for a kanban-inspired task management system.
 
+
 ## 📦 Installation
 
 ```bash
@@ -14,13 +15,20 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## 🚀 Run frontend and backend Server
+
+```bash
+task kanmind
+```
+
 ## ⚙️ Tech Stack
 
 Python 3.11+  
 Django 4.x  
 Django REST Framework  
 
-## 🚀 Features
+
+## 🎁 Features
 
 🗂 Boards: Organize your tasks into multiple kanban boards  
 ✅ Tasks: Create, update, and delete tasks with title, description, due date, and more  
